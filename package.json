@@ -1,0 +1,19 @@
+{
+  "name": "search-social-crawler",
+  "version": "0.1.0",
+  "description": "Web crawler for Search Social",
+  "author": {
+    "name": "Preston West",
+    "email": "prestonmontewest@gmail.com",
+    "url": "https://westsideconsulting.dev"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "parse5": "^8.0.1"
+  }
+}
