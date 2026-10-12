@@ -1,3 +1,4 @@
+import { URL } from 'node:url';
 import { parse } from 'parse5';
 
 // Social search engine
@@ -9,8 +10,10 @@ import { parse } from 'parse5';
 
 // Below is alpha web crawler impl
 
+const originUrl = 'https://google.com';
+
 try {
-  const response = await fetch('https://google.com');
+  const response = await fetch(originUrl);
 
   if (!response.ok) {
     throw new Error('bad response:', response.status);
@@ -18,27 +21,29 @@ try {
 
   const contentType = response.headers.get('content-type');
   if (contentType?.includes('application/json')) {
-    console.info('json parsing');
+    console.info('parsing json:', originUrl);
     console.log(JSON.parse(await response.text()));
   } else if (contentType?.includes('text/html')) {
-    console.info('html parsing');
+    console.info('parsing html:', originUrl);
     const doc = parse(await response.text());
     const bodyNode = doc.childNodes
       .find((node) => node.tagName === 'html')
       .childNodes.find((node) => node.tagName === 'body');
 
-    const anchors = [];
+    const links = [];
     const limit = process.env['SEARCH_DEPTH'] ?? Infinity;
     let count = 1;
     let childNodes = bodyNode.childNodes;
     let childNodeCount = childNodes.length;
     while (childNodeCount > 0 && count <= limit) {
-      console.info(`level #${count}`);
       const grandChildNodes = [];
       for (const node of childNodes) {
         if (node.tagName === 'a') {
-          anchors.push(node);
-          console.log(node.attrs.find((attr) => attr.name === 'href').value);
+          const linkText = node.attrs.find(
+            (attr) => attr.name === 'href',
+          ).value;
+          const fullLink = URL.parse(linkText, originUrl).href;
+          links.push(fullLink);
         } else if (node.childNodes) {
           grandChildNodes.push(...node.childNodes);
         }
@@ -48,6 +53,8 @@ try {
       childNodeCount = childNodes.length;
       count++;
     }
+
+    console.info('links found:', links.length);
 
     // store html page
     // fork workers / async network req / parallel comp
